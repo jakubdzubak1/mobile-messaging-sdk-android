@@ -20,4 +20,6 @@ public interface InAppChatClient {
      * @param attachment IMAGE, VIDEO, DOCUMENT
      */
     void sendChatMessage(String message, InAppChatMobileAttachment attachment);
+
+    void logout();
 }

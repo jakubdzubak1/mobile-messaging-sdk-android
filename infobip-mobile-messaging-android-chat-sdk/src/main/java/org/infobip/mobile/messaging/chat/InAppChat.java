@@ -23,6 +23,8 @@ public abstract class InAppChat {
      */
     public abstract void activate();
 
+    public abstract void auth(String subject, String widgetKeyId, String widgetKeySecret);
+
     /**
      * Creates in-app chat view activity
      *

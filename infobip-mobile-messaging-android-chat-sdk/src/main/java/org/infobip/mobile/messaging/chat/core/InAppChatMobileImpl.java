@@ -55,6 +55,32 @@ public class InAppChatMobileImpl implements InAppChatMobile {
 
     @Override
     @JavascriptInterface
+    public void onLog(final String message) {
+        Runnable myRunnable = new Runnable() {
+            @Override
+            public void run() {
+                MobileMessagingLogger.d("WebView log", message);
+            }
+        };
+        handler.post(myRunnable);
+    }
+
+    @Override
+    @JavascriptInterface
+    public void onLogout(final boolean logoutSuccess) {
+        MobileMessagingLogger.d("WebView logout success: " + logoutSuccess);
+        Runnable myRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (inAppChatWebViewManager != null)
+                    inAppChatWebViewManager.onLogout(logoutSuccess);
+            }
+        };
+        handler.post(myRunnable);
+    }
+
+    @Override
+    @JavascriptInterface
     public void openAttachmentPreview(final String url, final String type, final String caption) {
         Runnable myRunnable = new Runnable() {
             @Override

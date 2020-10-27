@@ -6,6 +6,7 @@
             I[b].t=1*new Date();i=n.createElement(f);i.async=1;i.src=o;
             p=n.getElementsByTagName(f)[0];p.parentNode.insertBefore(i,p)})
           (window,document,'script','https://livechat.infobip.com/widget.js','liveChat');
+
     </script>
     <style>
         body {
@@ -15,17 +16,22 @@
         #ib-widget-container {
             height: 100vh;
         }
+
     </style>
 </head>
 <body>
-    <div id="ib-widget-container"></div>
-    <script>
+<div id="ib-widget-container"></div>
+<script>
         // Api call naming section
         const CONFIG = 'config';
         const IDENTIFY = 'identify';
         const INIT = 'init';
         const SHOW = 'show';
         const SEND = 'send';
+        const AUTH = 'auth';
+        const LOGOUT = 'logout';
+
+        window.InAppChatMobile.onLog('Livechat started!');
 
         window.handleMessageSend = function(message) {
             liveChat(SEND, message);
@@ -48,18 +54,18 @@
             showFab: false
         });
 
-        // Try identify user by pushRegId
-		liveChat(IDENTIFY, {'pushRegistrationId' : getQueryParameter('pushRegId')}, function(error, result) {
-		    if (error) {
-		        window.InAppChatMobile.onError(error);
-			} else {
-				init();
-			}
-		});
+		//Auth user by JWT token
+		liveChat(AUTH, getQueryParameter('authToken'), function(error, result) {
+          if (error) {
+              window.InAppChatMobile.onError(error);
+          } else {
+              init();
+          }
+        });
 
-		// If all is OK -> initialize widget, enable native controls and show widget
+		// If auth is OK -> initialize widget, enable native controls and show widget
 		function init() {
-		    liveChat(INIT);
+		    liveChat(INIT, getQueryParameter('widgetId'));
 			liveChat(SHOW, null, () => onShowCallback());
 		}
 
@@ -76,6 +82,29 @@
                 window.InAppChatMobile.setControlsEnabled(true);
             }
         }
-    </script>
+
+        window.logout = function() {
+            window.InAppChatMobile.onLog('Logout called');
+<!--            liveChat(LOGOUT, () => onLogoutCallback());-->
+            liveChat('logout', function(error, result) {
+               window.InAppChatMobile.onLog('Logout executed');
+               if (error) {
+                  window.InAppChatMobile.onLogout(false);
+               } else {
+                  window.InAppChatMobile.onLogout(true);
+               }
+            });
+        }
+
+        function onLogoutCallback(error) {
+            window.InAppChatMobile.onLog('Logout executed');
+            if (error) {
+              window.InAppChatMobile.onLogout(false);
+            } else {
+              window.InAppChatMobile.onLogout(true);
+            }
+        }
+
+</script>
 </body>
 </html>

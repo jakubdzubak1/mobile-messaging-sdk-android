@@ -10,4 +10,5 @@ public interface InAppChatWebViewManager {
     void setControlsEnabled(boolean enabled);
     void onJSError();
     void openAttachmentPreview(String url, String type, String caption);
+    void onLogout(boolean logoutSuccess);
 }

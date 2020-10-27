@@ -28,6 +28,10 @@ public class PropertyHelper extends PreferenceHelper {
         saveBoolean(context, property.getKey(), value);
     }
 
+    public void saveString(MobileMessagingChatProperty property, String value){
+        saveString(context, property.getKey(), value, true);
+    }
+
     public Class[] findClasses(MobileMessagingChatProperty property) {
         String[] classNames = findStringArray(context, property.getKey(), new String[0]);
         if (classNames == null) {
@@ -70,5 +74,8 @@ public class PropertyHelper extends PreferenceHelper {
         PreferenceHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR.getKey());
         PreferenceHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR.getKey());
         PreferenceHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE.getKey());
+        PreferenceHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_SUBJECT.getKey());
+        PreferenceHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_ID.getKey());
+        PreferenceHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_SECRET.getKey());
     }
 }

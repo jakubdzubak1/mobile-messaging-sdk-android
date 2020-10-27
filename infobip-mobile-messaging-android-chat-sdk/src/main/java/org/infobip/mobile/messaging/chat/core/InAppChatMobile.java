@@ -21,6 +21,10 @@ interface InAppChatMobile {
      */
     void onError(String errorMessage);
 
+    void onLog(String message);
+
+    void onLogout(boolean logoutSuccess);
+
     /**
      * Open attachment preview in new webView window
      * @param url link to cdn

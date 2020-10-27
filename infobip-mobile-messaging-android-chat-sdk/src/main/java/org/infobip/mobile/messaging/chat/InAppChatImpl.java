@@ -66,6 +66,13 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     }
 
     @Override
+    public void auth(String subject, String widgetKeyId, String widgetKeySecret) {
+        propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_AUTH_SUBJECT, subject);
+        propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_ID, widgetKeyId);
+        propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_SECRET, widgetKeySecret);
+    }
+
+    @Override
     public boolean handleMessage(Message message) {
         if (!message.isChatMessage()) {
             return false;
@@ -180,6 +187,9 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR.getKey());
         PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR.getKey());
         PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE.getKey());
+        PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_SUBJECT.getKey());
+        PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_ID.getKey());
+        PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_SECRET.getKey());
     }
 
     // must be done on separate thread if it's not invoked by UI thread

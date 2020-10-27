@@ -41,6 +41,13 @@ public class InAppChatClientImpl implements InAppChatClient {
         }
     }
 
+    @Override
+    public void logout() {
+        if (webView != null) {
+            webView.loadUrl(buildWidgetMethodInvocation(InAppChatWidgetMethods.logout.name()));
+        }
+    }
+
     private String buildWidgetMethodInvocation(String methodName, String... params) {
         return this.buildWidgetMethodInvocation(methodName, true, params);
     }
@@ -55,6 +62,8 @@ public class InAppChatClientImpl implements InAppChatClient {
         if (params.length > 0) {
             String resultParamsStr = StringUtils.join("','", "('", "')", params);
             builder.append(resultParamsStr);
+        } else {
+            builder.append("()");
         }
         return builder.toString();
     }

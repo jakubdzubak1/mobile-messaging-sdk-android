@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         InAppChat.getInstance(this).activate();
+        InAppChat.getInstance(this).auth("personExternalId", "liveChatWidgetId", "liveChatWidgetSecret");
 
         setContentView(R.layout.activity_main);
         setSupportActionBar(this.<Toolbar>findViewById(R.id.toolbar));

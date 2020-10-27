@@ -38,10 +38,18 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+
 import org.infobip.mobile.messaging.BroadcastParameter;
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.Event;
 import org.infobip.mobile.messaging.MobileMessagingCore;
+import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.api.chat.WidgetInfo;
 import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
 import org.infobip.mobile.messaging.chat.InAppChatErrors;
@@ -65,8 +73,10 @@ import org.infobip.mobile.messaging.util.ResourceLoader;
 import org.infobip.mobile.messaging.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class InAppChatActivity extends PermissionsRequesterActivity implements InAppChatWebViewManager {
 
@@ -184,6 +194,18 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
     }
 
     public void closeChatPage() {
+        inAppChatClient.logout();
+        //TODO should not be here, but callback from logout JS function does not work
+        webView.freeMemory();
+        webView.removeAllViews();
+        webView.destroy();
+        finish();
+    }
+
+    @Override
+    public void onLogout(boolean logoutSuccess) {
+        MobileMessagingLogger.d("Logout result: " + logoutSuccess);
+        //TODO should check if logout was successful, if not call api delete session
         webView.freeMemory();
         webView.removeAllViews();
         webView.destroy();
@@ -343,12 +365,53 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
         return serialize.substring(1, serialize.length() - 1);
     }
 
+    private String generateAuthToken() {
+        String widgetId = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ID.getKey(), null);
+        String subject = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_SUBJECT.getKey(), null, true);
+        String widgetKeyId = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_ID.getKey(), null, true);
+        String widgetKeySecret = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_SECRET.getKey(), null, true);
+
+
+        if (subject != null && widgetKeyId != null && widgetKeySecret != null && widgetId != null) {
+            try {
+                com.nimbusds.jose.util.Base64 key = com.nimbusds.jose.util.Base64.from(widgetKeySecret);
+                MACSigner personalizationTokenSigner = new MACSigner(key.decode());
+
+                String uuid = UUID.randomUUID().toString();
+
+                String log = String.format("GET AUTH TOKEN <<< subject: %s, widgetKeyId: %s, widgetId: %s, uuid: %s", subject, widgetKeyId, widgetId, uuid);
+                MobileMessagingLogger.d(log);
+
+                JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                        .jwtID(uuid)
+                        .subject(subject)
+                        .issuer(widgetId)
+                        .issueTime(new Date())
+                        .expirationTime(new Date(System.currentTimeMillis() + 15000))
+                        .claim("ski", widgetKeyId)
+                        .claim("stp", "externalPersonId")
+                        .claim("sid", uuid)
+                        .build();
+
+                SignedJWT personalizedToken = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
+                personalizedToken.sign(personalizationTokenSigner);
+                String token = personalizedToken.serialize();
+                MobileMessagingLogger.d("SIGNED TOKEN <<< " + token);
+                return token;
+            } catch (JOSEException e) {
+                e.printStackTrace();
+            }
+        }
+        MobileMessagingLogger.d("SIGNED TOKEN " + null);
+        return null;
+    }
+
     private void loadWebPage(String url) {
-        String pushRegistrationId = MobileMessagingCore.getInstance(this).getPushRegistrationId();
-        if (pushRegistrationId != null && webView != null && widgetInfo != null) {
+        String authToken = generateAuthToken();
+        if (authToken != null && webView != null && widgetInfo != null) {
             String resultUrl = new Uri.Builder()
                     .encodedPath(url)
-                    .appendQueryParameter("pushRegId", pushRegistrationId)
+                    .appendQueryParameter("authToken", authToken)
                     .appendQueryParameter("widgetId", widgetInfo.getId())
                     .build()
                     .toString();
