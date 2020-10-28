@@ -16,8 +16,6 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
@@ -27,7 +25,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Base64;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
@@ -41,25 +38,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-
 import org.infobip.mobile.messaging.BroadcastParameter;
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.Event;
-import org.infobip.mobile.messaging.MobileMessagingCore;
-import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.api.chat.WidgetInfo;
 import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
 import org.infobip.mobile.messaging.chat.InAppChatErrors;
 import org.infobip.mobile.messaging.chat.InAppChatImpl;
 import org.infobip.mobile.messaging.chat.R;
-import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment;
 import org.infobip.mobile.messaging.chat.attachments.InAppChatAttachmentHelper;
+import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment;
 import org.infobip.mobile.messaging.chat.attachments.PermissionsRequesterActivity;
 import org.infobip.mobile.messaging.chat.core.InAppChatClient;
 import org.infobip.mobile.messaging.chat.core.InAppChatClientImpl;
@@ -75,13 +63,9 @@ import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.util.ResourceLoader;
 import org.infobip.mobile.messaging.util.StringUtils;
 
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public class InAppChatActivity extends PermissionsRequesterActivity implements InAppChatWebViewManager {
 
@@ -368,46 +352,8 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
         return serialize.substring(1, serialize.length() - 1);
     }
 
-    private String generateAuthToken() {
-        String widgetId = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ID.getKey(), null);
-        String subject = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_SUBJECT.getKey(), null, true);
-        String widgetKeyId = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_ID.getKey(), null, true);
-        String widgetKeySecret = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_WIDGET_KEY_SECRET.getKey(), null, true);
-
-
-        if (subject != null && widgetKeyId != null && widgetKeySecret != null && widgetId != null) {
-            try {
-                MACSigner personalizationTokenSigner =new MACSigner(Base64.decode(widgetKeySecret, Base64.DEFAULT));
-                String uuid = UUID.randomUUID().toString();
-                String log = String.format("GET AUTH TOKEN <<< subject: %s, widgetKeyId: %s, widgetId: %s, uuid: %s", subject, widgetKeyId, widgetId, uuid);
-                MobileMessagingLogger.d(log);
-
-                JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                        .jwtID(uuid)
-                        .subject(subject)
-                        .issuer(widgetId)
-                        .issueTime(new Date())
-                        .expirationTime(new Date(System.currentTimeMillis() + 15000))
-                        .claim("ski", widgetKeyId)
-                        .claim("stp", "externalPersonId")
-                        .claim("sid", uuid)
-                        .build();
-
-                SignedJWT personalizedToken = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
-                personalizedToken.sign(personalizationTokenSigner);
-                String token = personalizedToken.serialize();
-                MobileMessagingLogger.d("SIGNED TOKEN <<< " + token);
-                return token;
-            } catch (JOSEException e) {
-                e.printStackTrace();
-            }
-        }
-        MobileMessagingLogger.d("SIGNED TOKEN " + null);
-        return null;
-    }
-
     private void loadWebPage(String url) {
-        String authToken = generateAuthToken();
+        String authToken = PropertyHelper.findString(this, MobileMessagingChatProperty.IN_APP_CHAT_AUTH_TOKEN.getKey(), null, true);
         if (authToken != null && webView != null && widgetInfo != null) {
             String resultUrl = new Uri.Builder()
                     .encodedPath(url)
