@@ -27,6 +27,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
@@ -376,11 +377,8 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
 
         if (subject != null && widgetKeyId != null && widgetKeySecret != null && widgetId != null) {
             try {
-                com.nimbusds.jose.util.Base64 key = com.nimbusds.jose.util.Base64.from(widgetKeySecret);
-                MACSigner personalizationTokenSigner = new MACSigner(key.decode());
-
+                MACSigner personalizationTokenSigner =new MACSigner(Base64.decode(widgetKeySecret, Base64.DEFAULT));
                 String uuid = UUID.randomUUID().toString();
-
                 String log = String.format("GET AUTH TOKEN <<< subject: %s, widgetKeyId: %s, widgetId: %s, uuid: %s", subject, widgetKeyId, widgetId, uuid);
                 MobileMessagingLogger.d(log);
 
