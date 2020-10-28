@@ -16,6 +16,8 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
@@ -72,6 +74,8 @@ import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.util.ResourceLoader;
 import org.infobip.mobile.messaging.util.StringUtils;
 
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -188,18 +192,14 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                closeChatPage();
+                onBackPressed();
             }
         });
     }
 
-    public void closeChatPage() {
+    @Override
+    public void onBackPressed() {
         inAppChatClient.logout();
-        //TODO should not be here, but callback from logout JS function does not work
-        webView.freeMemory();
-        webView.removeAllViews();
-        webView.destroy();
-        finish();
     }
 
     @Override
@@ -225,7 +225,8 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
                 if (s.length() > 0 && !sendButtonIsColored) {
                     fillSendButtonByPrimaryColor();
                     sendButtonIsColored = true;
-                } else if (s.length() == 0) {
+                }
+                else if (s.length() == 0) {
                     btnSend.getDrawable().clearColorFilter();
                     sendButtonIsColored = false;
                 }
@@ -263,7 +264,8 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
         // setup colors (from widget or local config)
         if (shouldUseWidgetConfig()) {
             setStatusBarColor(primaryDarkColor);
-        } else {
+        }
+        else {
             TypedValue typedValue = new TypedValue();
             Resources.Theme theme = getTheme();
             // toolbar background color
@@ -474,12 +476,15 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
             if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                 if (intent.hasExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY)) {
                     chatErrors.insertError(InAppChatErrors.INTERNET_CONNECTION_ERROR);
-                } else {
+                }
+                else {
                     chatErrors.removeError(InAppChatErrors.INTERNET_CONNECTION_ERROR);
                 }
-            } else if (action.equals(InAppChatEvent.CHAT_CONFIGURATION_SYNCED.getKey())) {
+            }
+            else if (action.equals(InAppChatEvent.CHAT_CONFIGURATION_SYNCED.getKey())) {
                 chatErrors.removeError(InAppChatErrors.CONFIG_SYNC_ERROR);
-            } else if (action.equals(Event.API_COMMUNICATION_ERROR.getKey()) && intent.hasExtra(BroadcastParameter.EXTRA_EXCEPTION)) {
+            }
+            else if (action.equals(Event.API_COMMUNICATION_ERROR.getKey()) && intent.hasExtra(BroadcastParameter.EXTRA_EXCEPTION)) {
                 MobileMessagingError mobileMessagingError = (MobileMessagingError) intent.getSerializableExtra(BroadcastParameter.EXTRA_EXCEPTION);
                 String errorCode = mobileMessagingError.getCode();
                 if (errorCode.equals(CHAT_SERVICE_ERROR) || errorCode.equals(CHAT_WIDGET_NOT_FOUND)) {
@@ -508,7 +513,8 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
 
             if (newErrors.isEmpty()) {
                 hideChatNotAvailableView();
-            } else {
+            }
+            else {
                 showChatNotAvailableView();
             }
         }
@@ -620,7 +626,8 @@ public class InAppChatActivity extends PermissionsRequesterActivity implements I
                         if (attachment != null) {
                             MobileMessagingLogger.w("[InAppChat] Attachment created, will send Attachment");
                             inAppChatClient.sendChatMessage(null, attachment);
-                        } else {
+                        }
+                        else {
                             MobileMessagingLogger.e("[InAppChat] Can't create attachment");
                         }
                     }

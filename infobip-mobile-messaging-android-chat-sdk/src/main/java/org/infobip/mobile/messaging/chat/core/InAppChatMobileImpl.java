@@ -68,7 +68,6 @@ public class InAppChatMobileImpl implements InAppChatMobile {
     @Override
     @JavascriptInterface
     public void onLogout(final boolean logoutSuccess) {
-        MobileMessagingLogger.d("WebView logout success: " + logoutSuccess);
         Runnable myRunnable = new Runnable() {
             @Override
             public void run() {

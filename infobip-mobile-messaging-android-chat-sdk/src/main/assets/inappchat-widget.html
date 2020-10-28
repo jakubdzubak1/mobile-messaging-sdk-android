@@ -84,20 +84,10 @@
         }
 
         window.logout = function() {
-            window.InAppChatMobile.onLog('Logout called');
-<!--            liveChat(LOGOUT, () => onLogoutCallback());-->
-            liveChat('logout', function(error, result) {
-               window.InAppChatMobile.onLog('Logout executed');
-               if (error) {
-                  window.InAppChatMobile.onLogout(false);
-               } else {
-                  window.InAppChatMobile.onLogout(true);
-               }
-            });
+            liveChat(LOGOUT, null, () => onLogoutCallback());
         }
 
         function onLogoutCallback(error) {
-            window.InAppChatMobile.onLog('Logout executed');
             if (error) {
               window.InAppChatMobile.onLogout(false);
             } else {
